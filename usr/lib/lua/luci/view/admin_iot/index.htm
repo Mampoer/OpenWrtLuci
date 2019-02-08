@@ -200,7 +200,7 @@
 
     function save_button() {
         var host = document.getElementById("host-input");
-        var user = document.getElementById("pass-input");
+        var pass = document.getElementById("pass-input");
 
         var change = false;
 
@@ -208,23 +208,26 @@
             change = true;
         } 
 
-        if (host.value != host.defaultValue) {
+        if (pass.value != pass.defaultValue) {
             change = true;
         } 
 
         if (change == true) {
             var url = 'http://' + window.location.hostname + ':30080/api/v3/config';
-//            xmlhttp.data(JSON.stringify({ host: host.value, user: user.value }));
             xmlhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     var json = JSON.parse(this.responseText);
                     var config = json.config;
-                    document.getElementById("host-input").value = config.host;
-                    document.getElementById("host-input").defaultValue = config.host;
+                    var host_input = document.getElementById("host-input");
+                    var pass_input = document.getElementById("pass-input");
+                    host_input.value        = config.host;
+                    host_input.defaultValue = config.host;
+                    pass_input.value        = config.pass;
+                    pass_input.defaultValue = config.pass;
                 }
             };
             xmlhttp.open("POST", url, true);
-            xmlhttp.send(JSON.stringify({ host: host.value, user: user.value }));
+            xmlhttp.send(JSON.stringify({ host: host.value, pass: pass.value }));
         }
         else {
             alert ("No change");
