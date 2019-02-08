@@ -1,0 +1,237 @@
+
+
+<%+header%>
+    
+<h2 name="content">IoT</h2>
+
+<p>Version: 5.0.34</p>
+
+
+<div class="cbi-section">
+    <h3>Cloud</h3>
+
+    <p>Go to <a href="https://prototype.iotnxt.io/">here</a> to create your FREE account and monitor your devices from
+        anywhere. You can also self host the cloud tool, see more info</p>
+
+    <div class="table" width="100%" id="param-table">
+        <!-- <div class="tr">
+            <div class="td left" width="33%">Status</div>
+            <div class="td left" width="33%">Connected</div>
+            <div class="td left"> </div>
+        </div> -->
+        <div class="tr">
+            <div class="td left" width="50%">Host</div>
+            <div class="td left">
+                <input data-update="change" id="host-input" name="prototype_hostname" type="text" class="cbi-input-text" value="prototype.iotnxt.io" data-type="hostname" data-optional="false">
+            </div>
+        </div>
+
+        <div class="tr">
+            <div class="td left" width="50%">Apikey</div>
+            <div class="td left">
+            <!-- <div class="td left"><a href="">*************</a></div> -->
+                <input data-update="change" id="pass-input" name="prototype_password" type="password" class="cbi-input-password" value="" data-type="password" data-optional="false">
+            </div>
+        </div>
+    </div>
+
+    <div class="cbi-page-actions">
+        <input class="cbi-button cbi-button-apply" type="button" value="Save &amp; Apply" onclick="save_button()">
+        <input class="cbi-button cbi-button-reset" type="button" value="Reset" onclick="location.href='/cgi-bin/luci/admin/iot'">
+    </div>
+</div>
+
+
+
+<!-- <div class="cbi-section">
+    <h3>Usage</h3>
+
+    <div class="table" width="100%">
+
+        <div class="tr">
+            <div class="td left" width="33%"> </div>
+            <div class="td left" width="33%"><strong>TX</strong></div>
+            <div class="td left"><strong>RX</strong></div>
+        </div>
+
+        <div class="tr">
+            <div class="td left" width="33%">Packets(24h):</div>
+            <div class="td left" width="33%">3,605</div>
+            <div class="td left">14</div>
+        </div>
+
+        <div class="tr">
+            <div class="td left" width="33%">Data(24h):</div>
+            <div class="td left" width="33%">3.45MB</div>
+            <div class="td left">0.01MB</div>
+        </div>
+
+    </div>
+
+</div> -->
+
+
+
+<div class="cbi-section">
+    <h3>Devices</h3>
+
+    <div class="table" width="100%" id="device-table">
+        <div class="tr">
+            <div class="td left" width="20%"><strong>Device ID</strong></div>
+            <div class="td left" width="20%"><strong>Data</strong></div>
+            <div class="td right" width="20%"><strong>Last seen</strong></div>
+            <div class="td right" width="20%"><strong>Log</strong></div>
+            <div class="td right" width="20%"><strong>Remove</strong></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function refresh(arr) {
+        var xmlhttp = new XMLHttpRequest();
+        var url = 'http://' + window.location.hostname + ':30080/api/v3/list';
+
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                buildDeviceTable(JSON.parse(this.responseText));
+            }
+        };
+        xmlhttp.open("GET", url, true);
+        xmlhttp.send();
+
+        function buildDeviceTable(json) {
+            var out = "";
+            var i;
+
+            var arr  = json.devices;
+
+
+            out += '<div class="tr">' +
+                        '<div class="td left" width="20%"><strong>Device ID</strong></div>' +
+                        '<div class="td left" width="20%"><strong>Data</strong></div>' +
+                        '<div class="td right" width="20%"><strong>Last seen</strong></div>' +
+                        '<div class="td right" width="20%"><strong>Log</strong></div>' +
+                        '<div class="td right" width="20%"><strong>Remove</strong></div>' +
+                    '</div>'
+
+            for(i = 0; i < arr.length; i++) {
+                out +=  '<div class="tr">' +
+                            '<div class="td left" width="20%">'      + arr[i].id        +       '</div>'    +
+                            '<div class="td left" width="20%"><pre>' + arr[i].data      + '</pre></div>'    +
+                            '<div class="td right" width="20%">'     + arr[i].timestamp +       '</div>'    +
+                            '<div class="td right" width="20%"><a>'  + 'view'           +   '</a></div>'    +
+                            '<div class="td right" width="20%"><a>'  + 'remove'         +   '</a></div>'    +
+                        '</div>'
+            }
+
+            document.getElementById("device-table").innerHTML = out;
+        }
+    }
+
+    refresh();
+
+    setInterval(()=>{
+        console.log("test")
+        refresh();
+    }, 2000);
+
+
+    {
+        var xmlhttp = new XMLHttpRequest();
+        var url = 'http://' + window.location.hostname + ':30080/api/v3/config';
+
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                var json = JSON.parse(this.responseText);
+                var config = json.config;
+                document.getElementById("host-input").value = config.host;
+                document.getElementById("host-input").defaultValue = config.host;
+                document.getElementById("pass-input").value = config.pass;
+                document.getElementById("pass-input").defaultValue = config.pass;
+            }
+        };
+        xmlhttp.open("GET", url, true);
+        xmlhttp.send();
+    }
+
+
+    // function set_params(arr) {
+    //     var xmlhttp = new XMLHttpRequest();
+    //     var url = "http://192.168.1.1:30080/api/v3/set";
+
+    //     xmlhttp.onreadystatechange = function() {
+    //         if (this.readyState == 4 && this.status == 200) {
+    //             var myParam = JSON.parse(this.responseText);
+    //             buildParamTable(myParam);
+    //         }
+    //     };
+    //     xmlhttp.data()
+    //     xmlhttp.open("POST", url, true);
+    //     xmlhttp.send();
+
+    //     function buildParamTable(myParam) {
+    //         var out = "";
+    //         var i;
+
+    //         out +=  '<div class="tr">' +
+    //                     '<div class="td left" width="50%">Status</div>'    
+    //                     '<div class="td left">' + myParam.status + '</div>'
+    //                 '</div>'
+                    
+    //         out +=  '<div class="tr">' +
+    //                     '<div class="td left" width="50%">Host</div>'    
+    //                     '<div class="td left"><a href="">' + myParam.host + '</a></div>'
+    //                 '</div>'
+                    
+    //         out +=  '<div class="tr">' +
+    //             '<div class="td left" width="50%">Apikey</div>'    
+    //             '<div class="td left">' + myParam.host + 'Connected</div>'
+    //         '</div>'
+                    
+
+    //         <div class="td left"><a href="">*************</a></div>
+    //     </div>
+
+
+    //         document.getElementById("param-table").innerHTML = out;
+    //     }
+    // }
+
+    function save_button() {
+        var host = document.getElementById("host-input");
+        var user = document.getElementById("pass-input");
+
+        var change = false;
+
+        if (host.value != host.defaultValue) {
+            change = true;
+        } 
+
+        if (host.value != host.defaultValue) {
+            change = true;
+        } 
+
+        if (change == true) {
+            var url = 'http://' + window.location.hostname + ':30080/api/v3/config';
+//            xmlhttp.data(JSON.stringify({ host: host.value, user: user.value }));
+            xmlhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var json = JSON.parse(this.responseText);
+                    var config = json.config;
+                    document.getElementById("host-input").value = config.host;
+                    document.getElementById("host-input").defaultValue = config.host;
+                }
+            };
+            xmlhttp.open("POST", url, true);
+            xmlhttp.send(JSON.stringify({ host: host.value, user: user.value }));
+        }
+        else {
+            alert ("No change");
+        }
+    }
+
+</script>
+    
+
+<%+footer%>
